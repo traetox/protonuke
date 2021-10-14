@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/traetox/protonuke/goircd"
+	"github.com/traetox/protonuke/internal/goircd"
 )
 
 const (
