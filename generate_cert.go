@@ -83,7 +83,7 @@ func generateCerts() (string, string) {
 	}
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
-	log.Debugln("wrote cert to: ", certOut.Name())
+	log.Println("wrote cert to: ", certOut.Name())
 
 	keyOut, err := ioutil.TempFile("", "protonuke_key_")
 	if err != nil {
@@ -91,7 +91,7 @@ func generateCerts() (string, string) {
 	}
 	pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 	keyOut.Close()
-	log.Debugln("wrote key to: ", keyOut.Name())
+	log.Println("wrote key to: ", keyOut.Name())
 
 	return certOut.Name(), keyOut.Name()
 }

@@ -100,7 +100,7 @@ func (c *Client) Close() {
 // it futher. Also it can signalize that client is unavailable (disconnected).
 func (c *Client) Processor(sink chan ClientEvent) {
 	sink <- ClientEvent{c, EventNew, ""}
-	log.Debugln(c, "New client")
+	log.Println(c, "New client")
 	buf := make([]byte, BufSize*2)
 	var n int
 	var prev int
@@ -108,7 +108,7 @@ func (c *Client) Processor(sink chan ClientEvent) {
 	var err error
 	for {
 		if prev == BufSize {
-			log.Debugln(c, "input buffer size exceeded, kicking him")
+			log.Println(c, "input buffer size exceeded, kicking him")
 			break
 		}
 		n, err = c.conn.Read(buf[prev:])
@@ -148,7 +148,7 @@ func (c *Client) Msg(text string) {
 		return
 	}
 	if len(c.outBuf) == MaxOutBuf {
-		log.Debugln(c, "output buffer size exceeded, kicking him")
+		log.Println(c, "output buffer size exceeded, kicking him")
 		if c.alive {
 			c.SetDead()
 		}

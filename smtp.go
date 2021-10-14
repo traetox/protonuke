@@ -82,7 +82,7 @@ var (
 )
 
 func smtpClient(protocol string) {
-	log.Debugln("smtpClient")
+	log.Println("smtpClient")
 
 	// replace the email corpus if specified
 	if *f_smtpmail != "" {
@@ -108,7 +108,7 @@ func smtpClient(protocol string) {
 	for {
 		t.Tick()
 		h, o := randomHost()
-		log.Debug("smtp host %v from %v", h, o)
+		log.Printf("smtp host %v from %v", h, o)
 
 		s := rand.NewSource(time.Now().UnixNano())
 		r := rand.New(s)
@@ -186,7 +186,7 @@ func smtpGetFile(m mail) ([]byte, string, error) {
 		return nil, "", nil
 	}
 
-	log.Debug("got filename: %v", filename)
+	log.Printf("got filename: %v", filename)
 
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -276,7 +276,7 @@ func NewSMTPClientSession(c net.Conn) *SMTPClientSession {
 }
 
 func smtpServer(p string) {
-	log.Debugln("smtpServer")
+	log.Println("smtpServer")
 
 	certfile, keyfile := generateCerts()
 	cert, err := tls.LoadX509KeyPair(certfile, keyfile)
@@ -292,7 +292,7 @@ func smtpServer(p string) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Debugln(err)
+			log.Println(err)
 			continue
 		}
 
@@ -321,7 +321,7 @@ func (s *SMTPClientSession) Handler() {
 			input = strings.Trim(input, "\r\n")
 			cmd := strings.ToUpper(input)
 			if err != nil {
-				log.Debugln(err)
+				log.Println(err)
 				return
 			}
 			switch {
@@ -362,11 +362,11 @@ func (s *SMTPClientSession) Handler() {
 		case DATA:
 			input, err := s.readSmtp()
 			if err != nil {
-				log.Debugln(err)
+				log.Println(err)
 			}
 			s.data = input
-			log.Debugln("Got email message:")
-			log.Debugln(s)
+			log.Println("Got email message:")
+			log.Println(s)
 			s.addResponse("250 Ok: Now that is a delivery service you can count on")
 			s.state = COMMANDS
 		case STARTTLS:
@@ -380,7 +380,7 @@ func (s *SMTPClientSession) Handler() {
 				s.bufout = bufio.NewWriter(s.conn)
 				s.tls_on = true
 			} else {
-				log.Debugln("Could not TLS handshake:", err)
+				log.Println("Could not TLS handshake:", err)
 			}
 			s.state = COMMANDS
 		case QUIT:

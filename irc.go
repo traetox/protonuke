@@ -48,7 +48,7 @@ func updateIRCHitCount() {
 
 func ircClient() {
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
-	log.Debugln("ircClient")
+	log.Println("ircClient")
 	rand.Seed(time.Now().UnixNano())
 
 	// handle passed flags
@@ -104,7 +104,7 @@ func ircClient() {
 			// join channels
 			for i := 0; i < len(userChannels); i++ {
 				t.Tick()
-				log.Debug("[nick %v] joining channel %v on host %v", client.GetNick(), userChannels[i], host)
+				log.Printf("[nick %v] joining channel %v on host %v", client.GetNick(), userChannels[i], host)
 				client.Join(userChannels[i])
 			}
 
@@ -148,7 +148,7 @@ func ircClient() {
 							pair.channel = channel
 
 							// ping user
-							log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, nick)
+							log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, nick)
 							client.Privmsg(channel, nick)
 						}
 
@@ -165,7 +165,7 @@ func ircClient() {
 
 					to := randomFromSlice(joinedChannels)
 					message := randomMessage()
-					log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), to, message)
+					log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), to, message)
 					client.Privmsg(to, message)
 				}
 			}
@@ -200,7 +200,7 @@ func ircClient() {
 
 		// append random number to nick
 		newNick := nick + strconv.Itoa(rand.Intn(1000000))
-		log.Debug("[nick %v] Switching nick to %v", client.GetNick(), newNick)
+		log.Printf("[nick %v] Switching nick to %v", client.GetNick(), newNick)
 		client.Nick(newNick)
 	})
 
@@ -215,7 +215,7 @@ func ircClient() {
 			joinedChannels = append(joinedChannels, event.Arguments[0])
 
 			// send greeting to channel
-			log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Arguments[0], greeting)
+			log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Arguments[0], greeting)
 			client.Privmsg(event.Arguments[0], greeting)
 		} else {
 			// else add nick to users in channel
@@ -237,7 +237,7 @@ func ircClient() {
 			// channel message
 			channel := event.Arguments[0]
 			message := event.Message()
-			log.Debug("[nick %v] Received PRIVMSG in channel %v from %v: %v", client.GetNick(), channel, event.Nick, message)
+			log.Printf("[nick %v] Received PRIVMSG in channel %v from %v: %v", client.GetNick(), channel, event.Nick, message)
 
 			if pair.isWaiting && (pair.nick == event.Nick) {
 				if !pair.isPaired {
@@ -254,7 +254,7 @@ func ircClient() {
 							message = randomMessage()
 						}
 
-						log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, message)
+						log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, message)
 						client.Privmsg(channel, message)
 						pair.isWaiting = true
 					}
@@ -271,7 +271,7 @@ func ircClient() {
 						message = randomMessage()
 					}
 
-					log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, message)
+					log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, message)
 					client.Privmsg(channel, message)
 					pair.isWaiting = true
 				}
@@ -282,27 +282,27 @@ func ircClient() {
 				pair.counter = 0
 				t.Tick()
 
-				log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, greeting)
+				log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), channel, greeting)
 				client.Privmsg(channel, greeting)
 				pair.isWaiting = true
 			}
 		} else {
 			// private message, don't consider as a pair/conversation
-			log.Debug("[nick %v] Received PRIVMSG from %v: %v", client.GetNick(), event.Nick, event.Message())
+			log.Printf("[nick %v] Received PRIVMSG from %v: %v", client.GetNick(), event.Nick, event.Message())
 
 			if strings.Contains(event.Message(), client.GetNick()) {
 				// reply to highlight with greeting
-				log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Nick, greeting)
+				log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Nick, greeting)
 				client.Privmsg(event.Nick, greeting)
 			} else {
 				// otherwise, create a new message
 				if *f_markov {
 					message := chain.Generate()
-					log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Nick, message)
+					log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Nick, message)
 					client.Privmsg(event.Nick, message)
 				} else {
 					message := randomMessage()
-					log.Debug("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Nick, message)
+					log.Printf("[nick %v] Sending PRIVMSG to %v: %v", client.GetNick(), event.Nick, message)
 					client.Privmsg(event.Nick, message)
 				}
 			}
@@ -351,7 +351,7 @@ func ircClient() {
 	})
 
 	// connect
-	log.Debug("[nick %v] connecting to irc host %v from %v", client.GetNick(), host, original)
+	log.Printf("[nick %v] connecting to irc host %v from %v", client.GetNick(), host, original)
 	for {
 		err := client.Connect(host + ":" + port)
 		if err == nil {
@@ -388,7 +388,7 @@ func ircServer() {
 	if err != nil {
 		log.Fatal("Cannot listen on %s: %v", settings.Bind, err)
 	}
-	log.Debug("Server listening on %v", settings.Bind)
+	log.Printf("Server listening on %v", settings.Bind)
 
 	go func(sock net.Listener, events chan goircd.ClientEvent) {
 		for {

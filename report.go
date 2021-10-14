@@ -101,7 +101,7 @@ func report(reportWait time.Duration) {
 		lastsmtpReportMail = smtpReportMail
 		lastircReportHits = ircReportHits
 
-		log.Debugln("total elapsed time: ", elapsedTime)
+		log.Println("total elapsed time: ", elapsedTime)
 
 		buf := new(bytes.Buffer)
 		w := new(tabwriter.Writer)

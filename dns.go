@@ -48,12 +48,12 @@ func dnsClient() {
 		}
 
 		m.SetQuestion(dns.Fqdn(d), t)
-		log.Debug("dns client: question=%v", m.Question)
+		log.Printf("dns client: question=%v", m.Question)
 		in, err := dns.Exchange(m, h+addr)
 		if err != nil {
-			log.Debug(err.Error())
+			log.Printf(err.Error())
 		} else {
-			log.Debug("dns client: answer=%v", in)
+			log.Printf("dns client: answer=%v", in)
 			dnsReportChan <- 1
 		}
 	}
@@ -70,7 +70,7 @@ func randomQuestionType() uint16 {
 }
 
 func dnsServer() {
-	log.Debugln("dnsServer")
+	log.Println("dnsServer")
 	rand.Seed(time.Now().UnixNano())
 
 	dns.HandleFunc(".", handleDnsRequest)
@@ -102,7 +102,7 @@ func handleDnsRequest(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 	q := req.Question[0]
-	log.Debug("dns server: question=%v type=%v remote_host=%v", q.Name, q.Qtype, w.RemoteAddr())
+	log.Printf("dns server: question=%v type=%v remote_host=%v", q.Name, q.Qtype, w.RemoteAddr())
 
 	switch q.Qtype {
 	case dns.TypeA:

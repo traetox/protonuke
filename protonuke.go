@@ -114,13 +114,13 @@ func main() {
 	for k, _ := range hosts {
 		keys = append(keys, k)
 	}
-	log.Debugln("hosts: ", hosts)
+	log.Println("hosts: ", hosts)
 
 	// start the reporter
 	if *f_report == 0 {
-		log.Debugln("disabling reports")
+		log.Println("disabling reports")
 	} else {
-		log.Debug("enabling reports every %v", *f_report)
+		log.Printf("enabling reports every %v", *f_report)
 		go report(*f_report)
 	}
 

@@ -50,16 +50,16 @@ func inc(ip net.IP) {
 // like 10.0.0.0/24, we can populate the map with 254 keys, all with the same
 // value, so we can pretty print things related to the user's input.
 func parseHosts(input []string) (map[string]string, error) {
-	log.Debugln("parseHosts")
+	log.Println("parseHosts")
 	res := make(map[string]string)
 
 	for _, i := range input {
 		// input can be either a hostname/ip, a subnet, or a comma separated list of the two
-		log.Debugln("parsing ", i)
+		log.Println("parsing ", i)
 
 		if strings.Contains(i, ",") { // recursion on comma lists
 			d := strings.Split(i, ",")
-			log.Debugln("comma delimited: ", d)
+			log.Println("comma delimited: ", d)
 			hosts, err := parseHosts(d)
 			if err != nil {
 				return nil, err

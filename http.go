@@ -55,7 +55,7 @@ type HtmlContent struct {
 }
 
 func httpClient(protocol string) {
-	log.Debugln("httpClient")
+	log.Println("httpClient")
 
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
 
@@ -84,14 +84,14 @@ func httpClient(protocol string) {
 	for {
 		t.Tick()
 		h, o := randomHost()
-		log.Debug("http host %v from %v", h, o)
+		log.Printf("http host %v from %v", h, o)
 		httpClientRequest(h, client)
 		httpReportChan <- 1
 	}
 }
 
 func httpTLSClient(protocol string) {
-	log.Debugln("httpTLSClient")
+	log.Println("httpTLSClient")
 
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
 
@@ -136,7 +136,7 @@ func httpTLSClient(protocol string) {
 	for {
 		t.Tick()
 		h, o := randomHost()
-		log.Debug("https host %v from %v", h, o)
+		log.Printf("https host %v from %v", h, o)
 		httpTLSClientRequest(h, client)
 		httpTLSReportChan <- 1
 	}
@@ -152,7 +152,7 @@ func httpClientRequest(h string, client *http.Client) (elapsed uint64) {
 	r := rand.New(s)
 	url := httpSiteCache[r.Int31()%int32(len(httpSiteCache))]
 
-	log.Debugln("http using url: ", url)
+	log.Println("http using url: ", url)
 
 	// url notation requires leading and trailing [] on ipv6 addresses
 	if isIPv6(url) {
@@ -191,7 +191,7 @@ func httpClientRequest(h string, client *http.Client) (elapsed uint64) {
 	// make sure to grab any images, javascript, css
 	extraFiles := parseBody(string(body))
 	for _, v := range extraFiles {
-		log.Debugln("grabbing extra file: ", v)
+		log.Println("grabbing extra file: ", v)
 		httpGet(url, v, false, client)
 	}
 
@@ -216,7 +216,7 @@ func httpTLSClientRequest(h string, client *http.Client) (elapsed uint64) {
 	r := rand.New(s)
 	url := httpTLSSiteCache[r.Int31()%int32(len(httpTLSSiteCache))]
 
-	log.Debugln("https using url: ", url)
+	log.Println("https using url: ", url)
 
 	// url notation requires leading and trailing [] on ipv6 addresses
 	if isIPv6(url) {
@@ -253,7 +253,7 @@ func httpTLSClientRequest(h string, client *http.Client) (elapsed uint64) {
 	// make sure to grab any images, javascript, css
 	extraFiles := parseBody(string(body))
 	for _, v := range extraFiles {
-		log.Debugln("grabbing extra file: ", v)
+		log.Println("grabbing extra file: ", v)
 		httpGet(url, v, true, client)
 	}
 
@@ -323,7 +323,7 @@ func parseBody(body string) []string {
 		ret = append(ret, v[1])
 	}
 
-	log.Debugln("got extra files: ", ret)
+	log.Println("got extra files: ", ret)
 	return ret
 }
 
@@ -337,7 +337,7 @@ func parseLinks(body string) []string {
 		ret = append(ret, v[1])
 	}
 
-	log.Debugln("got links: ", ret)
+	log.Println("got links: ", ret)
 	return ret
 }
 
@@ -367,7 +367,7 @@ func httpSetup() {
 }
 
 func httpServer(p string) {
-	log.Debugln("httpServer")
+	log.Println("httpServer")
 	httpSetup()
 	hitChan = make(chan uint64, 1024)
 	go hitCounter()
@@ -386,7 +386,7 @@ func httpServer(p string) {
 }
 
 func httpTLSServer(p string) {
-	log.Debugln("httpTLSServer")
+	log.Println("httpTLSServer")
 	httpSetup()
 	hitTLSChan = make(chan uint64, 1024)
 	go hitTLSCounter()
@@ -425,7 +425,7 @@ func httpTLSServer(p string) {
 func httpMakeImage(size FileSize) {
 	pixelcount := size / 4
 	side := int(math.Sqrt(float64(pixelcount)))
-	log.Debug("Image served will be %v by %v", side, side)
+	log.Printf("Image served will be %v by %v", side, side)
 
 	m := image.NewRGBA(image.Rect(0, 0, side, side))
 	for i := 0; i < len(m.Pix); i++ {
@@ -500,10 +500,10 @@ func httpImageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("request: %v %v", r.RemoteAddr, r.URL.String())
+	log.Printf("request: %v %v", r.RemoteAddr, r.URL.String())
 	var usingTLS bool
 	if r.TLS != nil {
-		log.Debugln("request using tls")
+		log.Println("request using tls")
 		usingTLS = true
 	}
 
@@ -551,7 +551,7 @@ func randomURLs() []string {
 		ret = append(ret, fmt.Sprintf("%v", url))
 
 	}
-	log.Debugln("random urls: ", ret)
+	log.Println("random urls: ", ret)
 	return ret
 }
 

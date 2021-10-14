@@ -58,7 +58,7 @@ func ftpClient() {
 		// Connect to a host
 		if !connected {
 			h, o := randomHost()
-			log.Debug("ftp host %v from %v", h, o)
+			log.Printf("ftp host %v from %v", h, o)
 			host := h + ":" + strconv.Itoa(COMMAND_PORT)
 
 			if ftp, err = goftp.Connect(host); err != nil {
@@ -66,7 +66,7 @@ func ftpClient() {
 			} else {
 				ftp.HitCallback(updateHitCount)
 				connected = true
-				log.Debug("Connected to host")
+				log.Printf("Connected to host")
 			}
 			continue
 		}
@@ -77,7 +77,7 @@ func ftpClient() {
 				log.Errorln(err)
 			} else {
 				auth = true
-				log.Debug("Logged in as %v", USER)
+				log.Printf("Logged in as %v", USER)
 			}
 			continue
 		}
@@ -108,7 +108,7 @@ func ftpClient() {
 			} else {
 				tlsAuth = true
 			}
-			log.Debug("TLS auth ok")
+			log.Printf("TLS auth ok")
 			continue
 		}
 
@@ -121,28 +121,28 @@ func ftpClient() {
 				if curpath, err = ftp.Pwd(); err != nil {
 					log.Errorln(err)
 				}
-				log.Debug("Current path: %v", curpath)
+				log.Printf("Current path: %v", curpath)
 			case 1:
 				// get system type of remote host
 				var syst string
 				if syst, err = ftp.Syst(); err != nil {
 					log.Errorln(err)
 				}
-				log.Debug("System: %v", syst)
+				log.Printf("System: %v", syst)
 			case 2:
 				// Get the filesize of the protonuke binary
 				var size int
 				if size, err = ftp.Size("/tmp/ftpimage"); err != nil {
 					log.Errorln(err)
 				}
-				log.Debug("ftpimage file size: %v", size)
+				log.Printf("ftpimage file size: %v", size)
 			case 3:
 				// get directory listing
 				var files []string
 				if files, err = ftp.List("/tmp"); err != nil {
 					log.Errorln(err)
 				}
-				log.Debug("Directory listing: %v", files)
+				log.Printf("Directory listing: %v", files)
 			case 4:
 				// request file transfer
 				var s string
@@ -154,11 +154,11 @@ func ftpClient() {
 				if s, err = ftp.Retr("/tmp/ftpimage", retrfunc); err != nil {
 					log.Errorln(err)
 				}
-				log.Debug("Retr: %v", s)
+				log.Printf("Retr: %v", s)
 			case 5:
 				// quit
 				ftpQuit(ftp)
-				log.Debug("Logged out")
+				log.Printf("Logged out")
 			}
 		}
 	}
@@ -260,7 +260,7 @@ func ftpMakeImage() {
 
 	pixelcount := f_ftpFileSize / 4
 	side := int(math.Sqrt(float64(pixelcount)))
-	log.Debug("Image served will be %v by %v", side, side)
+	log.Printf("Image served will be %v by %v", side, side)
 
 	m := image.NewRGBA(image.Rect(0, 0, side, side))
 	for i := 0; i < len(m.Pix); i++ {

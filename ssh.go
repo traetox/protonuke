@@ -69,7 +69,7 @@ var (
 // connections exist), and 90% chance to issue commands on existing
 // connections.
 func sshClient(protocol string) {
-	log.Debugln("sshClient")
+	log.Println("sshClient")
 
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
 	for {
@@ -78,7 +78,7 @@ func sshClient(protocol string) {
 		// special case - if we have no connections, make a connection
 		if len(sshConns) == 0 {
 			h, o := randomHost()
-			log.Debug("ssh host %v from %v", h, o)
+			log.Printf("ssh host %v from %v", h, o)
 			sshClientConnect(h, protocol)
 		} else {
 			s := rand.NewSource(time.Now().UnixNano())
@@ -89,19 +89,19 @@ func sshClient(protocol string) {
 				// make sure we're not already connected
 				for _, v := range sshConns {
 					if v.Host == h {
-						log.Debugln("ssh: already connected")
+						log.Println("ssh: already connected")
 						continue
 					}
 				}
-				log.Debug("ssh host %v from %v", h, o)
+				log.Printf("ssh host %v from %v", h, o)
 				sshClientConnect(h, protocol)
 			case 1: // disconnect
 				i := r.Intn(len(sshConns))
-				log.Debug("ssh disconnect on %v", sshConns[i].Host)
+				log.Printf("ssh disconnect on %v", sshConns[i].Host)
 				sshClientDisconnect(i)
 			default: // event on one of the existing connections
 				i := r.Intn(len(sshConns))
-				log.Debug("ssh activity on %v", sshConns[i].Host)
+				log.Printf("ssh activity on %v", sshConns[i].Host)
 				sshClientActivity(i)
 			}
 		}
@@ -172,7 +172,7 @@ func sshClientActivity(index int) {
 	}
 
 	data := base64.StdEncoding.EncodeToString(b)
-	log.Debug("ssh activity to %v with %v", sc.Host, data)
+	log.Printf("ssh activity to %v with %v", sc.Host, data)
 
 	start := time.Now().UnixNano()
 
@@ -188,13 +188,13 @@ func sshClientActivity(index int) {
 	stop := time.Now().UnixNano()
 	log.Info("ssh %v %vns", sc.Host, uint64(stop-start))
 
-	log.Debugln("ssh: ", sc.StdoutBuf.String())
+	log.Println("ssh: ", sc.StdoutBuf.String())
 
 	sc.StdoutBuf.Reset()
 }
 
 func sshServer(p string) {
-	log.Debugln("sshServer")
+	log.Println("sshServer")
 
 	config := &ssh.ServerConfig{
 		PasswordCallback: func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
@@ -296,7 +296,7 @@ func sshHandleChannel(conn net.Conn, newChannel ssh.NewChannel) {
 			}
 			sshReportChan <- uint64(len(line))
 			// just echo the message
-			log.Debugln("ssh received: ", line)
+			log.Println("ssh received: ", line)
 			term.Write([]byte(line))
 			term.Write([]byte{'\r', '\n'})
 

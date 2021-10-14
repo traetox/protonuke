@@ -45,7 +45,7 @@ func (e *EventTicker) Tick() {
 		t = e.max
 	}
 
-	log.Debug("tick time %v", t)
+	log.Printf("tick time %v", t)
 
 	time.Sleep(time.Duration(t))
 }

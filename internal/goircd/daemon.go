@@ -75,7 +75,7 @@ func SendMotd(client *Client) {
 	}
 	motdText, err := ioutil.ReadFile(*motd)
 	if err != nil {
-		log.Debug("Can not read motd file %s: %v", *motd, err)
+		log.Printf("Can not read motd file %s: %v", *motd, err)
 		client.ReplyNicknamed("422", "Error reading MOTD File")
 		return
 	}
@@ -108,7 +108,7 @@ func SendWhois(client *Client, nicknames []string) {
 	Found:
 		hostPort, _, err = net.SplitHostPort(c.conn.RemoteAddr().String())
 		if err != nil {
-			log.Debug("Can't parse RemoteAddr %q: %v", hostPort, err)
+			log.Printf("Can't parse RemoteAddr %q: %v", hostPort, err)
 			hostPort = "Unknown"
 		}
 		client.ReplyNicknamed("311", *c.nickname, *c.username, hostPort, "*", *c.realname)
@@ -244,7 +244,7 @@ func ClientRegister(client *Client, cmd string, cols []string) {
 		client.ReplyNicknamed("004", *hostname+" goircd o o")
 		SendLusers(client)
 		SendMotd(client)
-		log.Debugln(client, "logged in")
+		log.Println(client, "logged in")
 	}
 }
 
@@ -298,7 +298,7 @@ func HandlerJoin(client *Client, cmd string) {
 		}
 		roomsM.RUnlock()
 		roomNew, roomSink = RoomRegister(room)
-		log.Debugln("Room", roomNew, "created")
+		log.Println("Room", roomNew, "created")
 		if key != "" {
 			roomNew.key = &key
 			roomNew.StateSave()
@@ -328,7 +328,7 @@ func Processor(events chan ClientEvent, finished chan struct{}) {
 			clientsM.RLock()
 			for c := range clients {
 				if c.recvTimestamp.Add(PingTimeout).Before(now) {
-					log.Debugln(c, "ping timeout")
+					log.Println(c, "ping timeout")
 					c.Close()
 					continue
 				}
@@ -337,7 +337,7 @@ func Processor(events chan ClientEvent, finished chan struct{}) {
 						c.Msg("PING :" + *hostname)
 						c.sendTimestamp = time.Now()
 					} else {
-						log.Debugln(c, "ping timeout")
+						log.Println(c, "ping timeout")
 						c.Close()
 					}
 				}
@@ -346,7 +346,7 @@ func Processor(events chan ClientEvent, finished chan struct{}) {
 			roomsM.Lock()
 			for rn, r := range rooms {
 				if *statedir == "" && len(r.members) == 0 {
-					log.Debugln(rn, "emptied room")
+					log.Println(rn, "emptied room")
 					delete(rooms, rn)
 					close(roomSinks[r])
 					delete(roomSinks, r)
@@ -379,10 +379,10 @@ func Processor(events chan ClientEvent, finished chan struct{}) {
 			cols := strings.SplitN(event.text, " ", 2)
 			cmd := strings.ToUpper(cols[0])
 			if *verbose {
-				log.Debugln(client, "command", cmd)
+				log.Println(client, "command", cmd)
 			}
 			if cmd == "QUIT" {
-				log.Debugln(client, "quit")
+				log.Println(client, "quit")
 				client.Close()
 				continue
 			}

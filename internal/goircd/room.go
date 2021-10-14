@@ -103,7 +103,7 @@ func (room *Room) Processor(events <-chan ClientEvent) {
 			room.Lock()
 			room.members[client] = struct{}{}
 			if *verbose {
-				log.Debugln(client, "joined", room.name)
+				log.Println(client, "joined", room.name)
 			}
 			room.Unlock()
 			room.SendTopic(client)
