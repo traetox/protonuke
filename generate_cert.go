@@ -16,8 +16,8 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"io/ioutil"
-	"math/big"
 	"log"
+	"math/big"
 	"os"
 	"time"
 )
@@ -39,7 +39,7 @@ func generateCerts() (string, string) {
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
-		log.Fatal("failed to generate private key: %s", err)
+		log.Fatalf("failed to generate private key: %s", err)
 	}
 
 	var notBefore time.Time
@@ -74,24 +74,24 @@ func generateCerts() (string, string) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	if err != nil {
-		log.Fatal("Failed to create certificate: %s", err)
+		log.Fatalf("Failed to create certificate: %s\n", err)
 	}
 
 	certOut, err := ioutil.TempFile("", "protonuke_cert_")
 	if err != nil {
-		log.Fatal("failed to open cert for writing: %s", err)
+		log.Fatalf("failed to open cert for writing: %s", err)
 	}
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
-	log.Println("wrote cert to: ", certOut.Name())
+	debug("wrote cert to: ", certOut.Name())
 
 	keyOut, err := ioutil.TempFile("", "protonuke_key_")
 	if err != nil {
-		log.Fatal("failed to open key.pem for writing: %v", err)
+		log.Fatalf("failed to open key.pem for writing: %v\n", err)
 	}
 	pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 	keyOut.Close()
-	log.Println("wrote key to: ", keyOut.Name())
+	debug("wrote key to: ", keyOut.Name())
 
 	return certOut.Name(), keyOut.Name()
 }

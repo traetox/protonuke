@@ -6,8 +6,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"log"
+	"math/rand"
 	"net"
 	"time"
 
@@ -48,12 +48,12 @@ func dnsClient() {
 		}
 
 		m.SetQuestion(dns.Fqdn(d), t)
-		log.Printf("dns client: question=%v", m.Question)
+		debugf("dns client: question=%v", m.Question)
 		in, err := dns.Exchange(m, h+addr)
 		if err != nil {
-			log.Printf(err.Error())
+			debugf(err.Error())
 		} else {
-			log.Printf("dns client: answer=%v", in)
+			debugf("dns client: answer=%v", in)
 			dnsReportChan <- 1
 		}
 	}
@@ -70,7 +70,7 @@ func randomQuestionType() uint16 {
 }
 
 func dnsServer() {
-	log.Println("dnsServer")
+	debug("dnsServer")
 	rand.Seed(time.Now().UnixNano())
 
 	dns.HandleFunc(".", handleDnsRequest)
@@ -102,7 +102,7 @@ func handleDnsRequest(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 	q := req.Question[0]
-	log.Printf("dns server: question=%v type=%v remote_host=%v", q.Name, q.Qtype, w.RemoteAddr())
+	debugf("dns server: question=%v type=%v remote_host=%v", q.Name, q.Qtype, w.RemoteAddr())
 
 	switch q.Qtype {
 	case dns.TypeA:

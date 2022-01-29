@@ -11,9 +11,9 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"log"
 	"math"
 	"math/rand"
-	"log"
 	"net"
 	"strconv"
 	"time"
@@ -58,15 +58,14 @@ func ftpClient() {
 		// Connect to a host
 		if !connected {
 			h, o := randomHost()
-			log.Printf("ftp host %v from %v", h, o)
+			debugf("ftp host %v from %v", h, o)
 			host := h + ":" + strconv.Itoa(COMMAND_PORT)
 
 			if ftp, err = goftp.Connect(host); err != nil {
-				log.Errorln(err)
+				log.Fatal(err)
 			} else {
-				ftp.HitCallback(updateHitCount)
 				connected = true
-				log.Printf("Connected to host")
+				debugf("Connected to host")
 			}
 			continue
 		}
@@ -74,10 +73,10 @@ func ftpClient() {
 		// Authenticate
 		if !auth {
 			if err = ftp.Login(USER, PASS); err != nil {
-				log.Errorln(err)
+				log.Fatal(err)
 			} else {
 				auth = true
-				log.Printf("Logged in as %v", USER)
+				debugf("Logged in as %v", USER)
 			}
 			continue
 		}
@@ -103,12 +102,12 @@ func ftpClient() {
 			}
 
 			if err = ftp.AuthTLS(tlsConfig); err != nil {
-				log.Errorln(err)
+				log.Fatal(err)
 				ftpQuit(ftp)
 			} else {
 				tlsAuth = true
 			}
-			log.Printf("TLS auth ok")
+			debugf("TLS auth ok")
 			continue
 		}
 
@@ -119,30 +118,30 @@ func ftpClient() {
 				// get current path
 				var curpath string
 				if curpath, err = ftp.Pwd(); err != nil {
-					log.Errorln(err)
+					log.Fatal(err)
 				}
-				log.Printf("Current path: %v", curpath)
+				debugf("Current path: %v", curpath)
 			case 1:
 				// get system type of remote host
 				var syst string
 				if syst, err = ftp.Syst(); err != nil {
-					log.Errorln(err)
+					log.Fatal(err)
 				}
-				log.Printf("System: %v", syst)
+				debugf("System: %v", syst)
 			case 2:
 				// Get the filesize of the protonuke binary
 				var size int
 				if size, err = ftp.Size("/tmp/ftpimage"); err != nil {
-					log.Errorln(err)
+					log.Fatal(err)
 				}
-				log.Printf("ftpimage file size: %v", size)
+				debugf("ftpimage file size: %v", size)
 			case 3:
 				// get directory listing
 				var files []string
 				if files, err = ftp.List("/tmp"); err != nil {
-					log.Errorln(err)
+					log.Fatal(err)
 				}
-				log.Printf("Directory listing: %v", files)
+				debugf("Directory listing: %v", files)
 			case 4:
 				// request file transfer
 				var s string
@@ -152,13 +151,13 @@ func ftpClient() {
 					return err
 				}
 				if s, err = ftp.Retr("/tmp/ftpimage", retrfunc); err != nil {
-					log.Errorln(err)
+					log.Fatal(err)
 				}
-				log.Printf("Retr: %v", s)
+				debugf("Retr: %v", s)
 			case 5:
 				// quit
 				ftpQuit(ftp)
-				log.Printf("Logged out")
+				debugf("Logged out")
 			}
 		}
 	}
@@ -172,7 +171,7 @@ func ftpsClient() {
 func ftpQuit(ftp *goftp.FTP) {
 	// close connection
 	if err := ftp.Quit(); err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 	}
 	connected = false
 	auth = false
@@ -203,12 +202,12 @@ func ftpServer() {
 	var ipv4 net.IP
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 	}
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 		}
 		for _, addr := range addrs {
 			ipnet, ok := addr.(*net.IPNet)
@@ -237,14 +236,13 @@ func ftpServer() {
 		CertFile:     cert,
 		KeyFile:      key,
 		ExplicitFTPS: useTLS,
-		HitFunc:      updateHitCount,
 	}
 	goftpServer = server.NewServer(opt)
 
 	go func() {
 		err := goftpServer.ListenAndServe()
 		if err != nil {
-			log.Error("Error starting server: %v", err)
+			log.Fatalf("Error starting server: %v", err)
 		}
 	}()
 }
@@ -260,7 +258,7 @@ func ftpMakeImage() {
 
 	pixelcount := f_ftpFileSize / 4
 	side := int(math.Sqrt(float64(pixelcount)))
-	log.Printf("Image served will be %v by %v", side, side)
+	debugf("Image served will be %v by %v", side, side)
 
 	m := image.NewRGBA(image.Rect(0, 0, side, side))
 	for i := 0; i < len(m.Pix); i++ {

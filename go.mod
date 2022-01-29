@@ -9,5 +9,6 @@ require (
 	github.com/jlaffaye/ftp v0.0.0-20210307004419-5d4190119067 // indirect
 	github.com/miekg/dns v1.1.43
 	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 )

@@ -10,8 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"log"
+	"math/rand"
 	"net"
 	"time"
 
@@ -69,7 +69,7 @@ var (
 // connections exist), and 90% chance to issue commands on existing
 // connections.
 func sshClient(protocol string) {
-	log.Println("sshClient")
+	debug("sshClient")
 
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
 	for {
@@ -78,7 +78,7 @@ func sshClient(protocol string) {
 		// special case - if we have no connections, make a connection
 		if len(sshConns) == 0 {
 			h, o := randomHost()
-			log.Printf("ssh host %v from %v", h, o)
+			debugf("ssh host %v from %v", h, o)
 			sshClientConnect(h, protocol)
 		} else {
 			s := rand.NewSource(time.Now().UnixNano())
@@ -89,19 +89,19 @@ func sshClient(protocol string) {
 				// make sure we're not already connected
 				for _, v := range sshConns {
 					if v.Host == h {
-						log.Println("ssh: already connected")
+						debug("ssh: already connected")
 						continue
 					}
 				}
-				log.Printf("ssh host %v from %v", h, o)
+				debugf("ssh host %v from %v", h, o)
 				sshClientConnect(h, protocol)
 			case 1: // disconnect
 				i := r.Intn(len(sshConns))
-				log.Printf("ssh disconnect on %v", sshConns[i].Host)
+				debugf("ssh disconnect on %v", sshConns[i].Host)
 				sshClientDisconnect(i)
 			default: // event on one of the existing connections
 				i := r.Intn(len(sshConns))
-				log.Printf("ssh activity on %v", sshConns[i].Host)
+				debugf("ssh activity on %v", sshConns[i].Host)
 				sshClientActivity(i)
 			}
 		}
@@ -126,25 +126,25 @@ func sshClientConnect(host string, protocol string) {
 	var err error
 	sc.Client, err = ssh.Dial(protocol, dHost+PORT, sc.Config)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
 	sc.Session, err = sc.Client.NewSession()
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
 	sc.Session.Stdout = &sc.StdoutBuf
 	sc.Stdin, err = sc.Session.StdinPipe()
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
 	if err := sc.Session.Shell(); err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
@@ -172,7 +172,7 @@ func sshClientActivity(index int) {
 	}
 
 	data := base64.StdEncoding.EncodeToString(b)
-	log.Printf("ssh activity to %v with %v", sc.Host, data)
+	debugf("ssh activity to %v with %v", sc.Host, data)
 
 	start := time.Now().UnixNano()
 
@@ -186,15 +186,15 @@ func sshClientActivity(index int) {
 	}
 
 	stop := time.Now().UnixNano()
-	log.Info("ssh %v %vns", sc.Host, uint64(stop-start))
+	debug("ssh %v %vns", sc.Host, uint64(stop-start))
 
-	log.Println("ssh: ", sc.StdoutBuf.String())
+	debug("ssh: ", sc.StdoutBuf.String())
 
 	sc.StdoutBuf.Reset()
 }
 
 func sshServer(p string) {
-	log.Println("sshServer")
+	debug("sshServer")
 
 	config := &ssh.ServerConfig{
 		PasswordCallback: func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
@@ -222,14 +222,14 @@ func sshServer(p string) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 			continue
 		}
 
 		// Before use, a handshake must be performed on the incoming net.Conn.
 		_, chans, reqs, err := ssh.NewServerConn(conn, config)
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 			continue
 		}
 
@@ -257,7 +257,7 @@ func sshHandleChannel(conn net.Conn, newChannel ssh.NewChannel) {
 	}
 	channel, requests, err := newChannel.Accept()
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
@@ -290,18 +290,18 @@ func sshHandleChannel(conn net.Conn, newChannel ssh.NewChannel) {
 			start := time.Now().UnixNano()
 			if err != nil {
 				if err != io.EOF {
-					log.Errorln(err)
+					log.Fatal(err)
 				}
 				return
 			}
 			sshReportChan <- uint64(len(line))
 			// just echo the message
-			log.Println("ssh received: ", line)
+			debug("ssh received: ", line)
 			term.Write([]byte(line))
 			term.Write([]byte{'\r', '\n'})
 
 			stop := time.Now().UnixNano()
-			log.Info("ssh %v %vns", conn.RemoteAddr(), uint64(stop-start))
+			debug("ssh %v %vns", conn.RemoteAddr(), uint64(stop-start))
 		}
 	}()
 }

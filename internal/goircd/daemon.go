@@ -49,11 +49,11 @@ var (
 )
 
 var (
-    HitFunc func()
+	HitFunc func()
 )
 
 func HitCallback(fn func()) {
-    HitFunc = fn
+	HitFunc = fn
 }
 
 func SendLusers(client *Client) {
@@ -322,7 +322,7 @@ func Processor(events chan ClientEvent, finished chan struct{}) {
 	for event := range events {
 		now = time.Now()
 		client := event.client
-        HitFunc()
+		HitFunc()
 		switch event.eventType {
 		case EventTick:
 			clientsM.RLock()

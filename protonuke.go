@@ -48,6 +48,7 @@ var (
 	f_httpTLSCert   = flag.String("httptlscert", "", "file containing public certificate for TLS")
 	f_httpTLSKey    = flag.String("httptlskey", "", "file containing private key for TLS")
 	f_tlsVersion    = flag.String("tlsversion", "", "Select a TLS version for the client: tls1.0, tls1.1, tls1.2")
+	f_verbose       = flag.Bool("verbose", false, "Print verbose status")
 
 	// See main for registering with flag
 	f_httpImageSize = DefaultFileSize
@@ -79,8 +80,6 @@ func main() {
 
 	sig := make(chan os.Signal, 1024)
 	signal.Notify(sig, syscall.SIGINT)
-
-	log.Init()
 
 	dns := false
 	if *f_dns || *f_dnsv4 || *f_dnsv6 {
@@ -114,13 +113,13 @@ func main() {
 	for k, _ := range hosts {
 		keys = append(keys, k)
 	}
-	log.Println("hosts: ", hosts)
+	debug("hosts: ", hosts)
 
 	// start the reporter
 	if *f_report == 0 {
-		log.Println("disabling reports")
+		debug("disabling reports")
 	} else {
-		log.Printf("enabling reports every %v", *f_report)
+		debugf("enabling reports every %v", *f_report)
 		go report(*f_report)
 	}
 

@@ -6,7 +6,6 @@ package main
 
 import (
 	"math/rand"
-	"log"
 	"time"
 )
 
@@ -44,8 +43,6 @@ func (e *EventTicker) Tick() {
 	} else if t > e.max {
 		t = e.max
 	}
-
-	log.Printf("tick time %v", t)
 
 	time.Sleep(time.Duration(t))
 }

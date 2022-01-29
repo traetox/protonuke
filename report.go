@@ -7,7 +7,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"text/tabwriter"
 	"time"
 )
@@ -100,38 +99,50 @@ func report(reportWait time.Duration) {
 		lastsshReportBytes = sshReportBytes
 		lastsmtpReportMail = smtpReportMail
 		lastircReportHits = ircReportHits
+		if *f_verbose {
+			debug("total elapsed time: ", elapsedTime)
+			buf := new(bytes.Buffer)
+			w := new(tabwriter.Writer)
+			w.Init(buf, 0, 8, 0, '\t', 0)
 
-		log.Println("total elapsed time: ", elapsedTime)
+			if *f_dns {
+				fmt.Fprintf(w, "dns\t%v\t%.01f hits/min\n", dnsReportHits, float64(edns)/elapsedTime.Minutes())
+			}
+			if *f_ftp {
+				fmt.Fprintf(w, "ftp\t%v\t%.01f hits/min\n", ftpReportHits, float64(eftp)/elapsedTime.Minutes())
+			}
+			if *f_ftps {
+				fmt.Fprintf(w, "ftps\t%v\t%.01f hits/min\n", ftpTLSReportHits, float64(eftptls)/elapsedTime.Minutes())
+			}
+			if *f_http {
+				fmt.Fprintf(w, "http\t%v\t%.01f hits/min\n", httpReportHits, float64(ehttp)/elapsedTime.Minutes())
+			}
+			if *f_https {
+				fmt.Fprintf(w, "https\t%v\t%.01f hits/min\n", httpTLSReportHits, float64(etls)/elapsedTime.Minutes())
+			}
+			if *f_ssh {
+				fmt.Fprintf(w, "ssh\t%v\t%.01f bytes/min\n", sshReportBytes, float64(essh)/elapsedTime.Minutes())
+			}
+			if *f_smtp {
+				fmt.Fprintf(w, "smtp\t%v\t%.01f mails/min\n", smtpReportMail, float64(esmtp)/elapsedTime.Minutes())
+			}
+			if *f_irc {
+				fmt.Fprintf(w, "irc\t%v\t%.01f hits/min\n", ircReportHits, float64(eirc)/elapsedTime.Minutes())
+			}
+			w.Flush()
+			fmt.Println(buf.String())
+		}
+	}
+}
 
-		buf := new(bytes.Buffer)
-		w := new(tabwriter.Writer)
-		w.Init(buf, 0, 8, 0, '\t', 0)
+func debugf(format string, args ...interface{}) {
+	if *f_verbose {
+		debugf(format, args...)
+	}
+}
 
-		if *f_dns {
-			fmt.Fprintf(w, "dns\t%v\t%.01f hits/min\n", dnsReportHits, float64(edns)/elapsedTime.Minutes())
-		}
-		if *f_ftp {
-			fmt.Fprintf(w, "ftp\t%v\t%.01f hits/min\n", ftpReportHits, float64(eftp)/elapsedTime.Minutes())
-		}
-		if *f_ftps {
-			fmt.Fprintf(w, "ftps\t%v\t%.01f hits/min\n", ftpTLSReportHits, float64(eftptls)/elapsedTime.Minutes())
-		}
-		if *f_http {
-			fmt.Fprintf(w, "http\t%v\t%.01f hits/min\n", httpReportHits, float64(ehttp)/elapsedTime.Minutes())
-		}
-		if *f_https {
-			fmt.Fprintf(w, "https\t%v\t%.01f hits/min\n", httpTLSReportHits, float64(etls)/elapsedTime.Minutes())
-		}
-		if *f_ssh {
-			fmt.Fprintf(w, "ssh\t%v\t%.01f bytes/min\n", sshReportBytes, float64(essh)/elapsedTime.Minutes())
-		}
-		if *f_smtp {
-			fmt.Fprintf(w, "smtp\t%v\t%.01f mails/min\n", smtpReportMail, float64(esmtp)/elapsedTime.Minutes())
-		}
-		if *f_irc {
-			fmt.Fprintf(w, "irc\t%v\t%.01f hits/min\n", ircReportHits, float64(eirc)/elapsedTime.Minutes())
-		}
-		w.Flush()
-		fmt.Println(buf.String())
+func debug(args ...interface{}) {
+	if *f_verbose {
+		debug(args...)
 	}
 }

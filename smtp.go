@@ -29,8 +29,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"log"
+	"math/rand"
 	"net"
 	"net/smtp"
 	"os"
@@ -82,7 +82,7 @@ var (
 )
 
 func smtpClient(protocol string) {
-	log.Println("smtpClient")
+	debug("smtpClient")
 
 	// replace the email corpus if specified
 	if *f_smtpmail != "" {
@@ -108,7 +108,7 @@ func smtpClient(protocol string) {
 	for {
 		t.Tick()
 		h, o := randomHost()
-		log.Printf("smtp host %v from %v", h, o)
+		debugf("smtp host %v from %v", h, o)
 
 		s := rand.NewSource(time.Now().UnixNano())
 		r := rand.New(s)
@@ -135,9 +135,9 @@ func smtpClient(protocol string) {
 		stop := time.Now().UnixNano()
 		elapsed := uint64(stop - start)
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 		} else {
-			log.Info("smtp %v %vns", h, elapsed)
+			debug("smtp %v %vns", h, elapsed)
 			smtpReportChan <- 1
 		}
 	}
@@ -186,7 +186,7 @@ func smtpGetFile(m mail) ([]byte, string, error) {
 		return nil, "", nil
 	}
 
-	log.Printf("got filename: %v", filename)
+	debugf("got filename: %v", filename)
 
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -223,7 +223,7 @@ func smtpSendMail(server string, m mail, protocol string) error {
 	if *f_smtpTls {
 		err = c.StartTLS(&tls.Config{InsecureSkipVerify: true})
 		if err != nil {
-			log.Warnln("could not start tls")
+			debug("could not start tls")
 		}
 	}
 
@@ -276,7 +276,7 @@ func NewSMTPClientSession(c net.Conn) *SMTPClientSession {
 }
 
 func smtpServer(p string) {
-	log.Println("smtpServer")
+	debug("smtpServer")
 
 	certfile, keyfile := generateCerts()
 	cert, err := tls.LoadX509KeyPair(certfile, keyfile)
@@ -292,7 +292,7 @@ func smtpServer(p string) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Println(err)
+			debug(err)
 			continue
 		}
 
@@ -321,7 +321,7 @@ func (s *SMTPClientSession) Handler() {
 			input = strings.Trim(input, "\r\n")
 			cmd := strings.ToUpper(input)
 			if err != nil {
-				log.Println(err)
+				debug(err)
 				return
 			}
 			switch {
@@ -362,11 +362,11 @@ func (s *SMTPClientSession) Handler() {
 		case DATA:
 			input, err := s.readSmtp()
 			if err != nil {
-				log.Println(err)
+				debug(err)
 			}
 			s.data = input
-			log.Println("Got email message:")
-			log.Println(s)
+			debug("Got email message:")
+			debug(s)
 			s.addResponse("250 Ok: Now that is a delivery service you can count on")
 			s.state = COMMANDS
 		case STARTTLS:
@@ -380,12 +380,12 @@ func (s *SMTPClientSession) Handler() {
 				s.bufout = bufio.NewWriter(s.conn)
 				s.tls_on = true
 			} else {
-				log.Println("Could not TLS handshake:", err)
+				debug("Could not TLS handshake:", err)
 			}
 			s.state = COMMANDS
 		case QUIT:
 			stop := time.Now().UnixNano()
-			log.Info("smtp %v %vns", s.conn.RemoteAddr(), uint64(stop-start))
+			debug("smtp %v %vns", s.conn.RemoteAddr(), uint64(stop-start))
 			return
 		}
 		size, _ := s.bufout.WriteString(s.response)

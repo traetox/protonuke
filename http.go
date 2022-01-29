@@ -14,9 +14,9 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"log"
 	"math"
 	"math/rand"
-	"log"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -55,7 +55,7 @@ type HtmlContent struct {
 }
 
 func httpClient(protocol string) {
-	log.Println("httpClient")
+	debug("httpClient")
 
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
 
@@ -84,14 +84,14 @@ func httpClient(protocol string) {
 	for {
 		t.Tick()
 		h, o := randomHost()
-		log.Printf("http host %v from %v", h, o)
+		debugf("http host %v from %v", h, o)
 		httpClientRequest(h, client)
 		httpReportChan <- 1
 	}
 }
 
 func httpTLSClient(protocol string) {
-	log.Println("httpTLSClient")
+	debug("httpTLSClient")
 
 	t := NewEventTicker(*f_mean, *f_stddev, *f_min, *f_max)
 
@@ -136,7 +136,7 @@ func httpTLSClient(protocol string) {
 	for {
 		t.Tick()
 		h, o := randomHost()
-		log.Printf("https host %v from %v", h, o)
+		debugf("https host %v from %v", h, o)
 		httpTLSClientRequest(h, client)
 		httpTLSReportChan <- 1
 	}
@@ -152,7 +152,7 @@ func httpClientRequest(h string, client *http.Client) (elapsed uint64) {
 	r := rand.New(s)
 	url := httpSiteCache[r.Int31()%int32(len(httpSiteCache))]
 
-	log.Println("http using url: ", url)
+	debug("http using url: ", url)
 
 	// url notation requires leading and trailing [] on ipv6 addresses
 	if isIPv6(url) {
@@ -165,7 +165,7 @@ func httpClientRequest(h string, client *http.Client) (elapsed uint64) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
@@ -177,7 +177,7 @@ func httpClientRequest(h string, client *http.Client) (elapsed uint64) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
@@ -186,12 +186,12 @@ func httpClientRequest(h string, client *http.Client) (elapsed uint64) {
 
 	stop := time.Now().UnixNano()
 	elapsed = uint64(stop - start)
-	log.Info("http %v %v %vns", h, url, elapsed)
+	debug("http %v %v %vns", h, url, elapsed)
 
 	// make sure to grab any images, javascript, css
 	extraFiles := parseBody(string(body))
 	for _, v := range extraFiles {
-		log.Println("grabbing extra file: ", v)
+		debug("grabbing extra file: ", v)
 		httpGet(url, v, false, client)
 	}
 
@@ -216,7 +216,7 @@ func httpTLSClientRequest(h string, client *http.Client) (elapsed uint64) {
 	r := rand.New(s)
 	url := httpTLSSiteCache[r.Int31()%int32(len(httpTLSSiteCache))]
 
-	log.Println("https using url: ", url)
+	debug("https using url: ", url)
 
 	// url notation requires leading and trailing [] on ipv6 addresses
 	if isIPv6(url) {
@@ -229,7 +229,7 @@ func httpTLSClientRequest(h string, client *http.Client) (elapsed uint64) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
@@ -240,7 +240,7 @@ func httpTLSClientRequest(h string, client *http.Client) (elapsed uint64) {
 	start := time.Now().UnixNano()
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatal(err)
 		return
 	}
 
@@ -248,12 +248,12 @@ func httpTLSClientRequest(h string, client *http.Client) (elapsed uint64) {
 	body, err := ioutil.ReadAll(resp.Body)
 	stop := time.Now().UnixNano()
 	elapsed = uint64(stop - start)
-	log.Info("https %v %v %vns", client, url, elapsed)
+	debug("https %v %v %vns", client, url, elapsed)
 
 	// make sure to grab any images, javascript, css
 	extraFiles := parseBody(string(body))
 	for _, v := range extraFiles {
-		log.Println("grabbing extra file: ", v)
+		debug("grabbing extra file: ", v)
 		httpGet(url, v, true, client)
 	}
 
@@ -281,15 +281,15 @@ func httpGet(url, file string, useTLS bool, client *http.Client) {
 		start := time.Now().UnixNano()
 		resp, err := client.Get(file)
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 		} else {
 			n, err := io.Copy(ioutil.Discard, resp.Body)
 			if err != nil {
-				log.Error("httpGet: %v, only copied %v bytes", err, n)
+				log.Fatalf("httpGet: %v, only copied %v bytes", err, n)
 			}
 			resp.Body.Close()
 			stop := time.Now().UnixNano()
-			log.Info("https %v %v %vns", client, file, stop-start)
+			debug("https %v %v %vns", client, file, stop-start)
 			//httpTLSReportChan <- 1
 		}
 	} else {
@@ -299,15 +299,15 @@ func httpGet(url, file string, useTLS bool, client *http.Client) {
 		start := time.Now().UnixNano()
 		resp, err := client.Get(file)
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 		} else {
 			n, err := io.Copy(ioutil.Discard, resp.Body)
 			if err != nil {
-				log.Error("httpGet: %v, only copied %v bytes", err, n)
+				log.Fatalf("httpGet: %v, only copied %v bytes", err, n)
 			}
 			resp.Body.Close()
 			stop := time.Now().UnixNano()
-			log.Info("http %v %v %vns", client, file, stop-start)
+			debug("http %v %v %vns", client, file, stop-start)
 			//httpReportChan <- 1
 		}
 	}
@@ -323,7 +323,7 @@ func parseBody(body string) []string {
 		ret = append(ret, v[1])
 	}
 
-	log.Println("got extra files: ", ret)
+	debug("got extra files: ", ret)
 	return ret
 }
 
@@ -337,7 +337,7 @@ func parseLinks(body string) []string {
 		ret = append(ret, v[1])
 	}
 
-	log.Println("got links: ", ret)
+	debug("got links: ", ret)
 	return ret
 }
 
@@ -367,7 +367,7 @@ func httpSetup() {
 }
 
 func httpServer(p string) {
-	log.Println("httpServer")
+	debug("httpServer")
 	httpSetup()
 	hitChan = make(chan uint64, 1024)
 	go hitCounter()
@@ -386,7 +386,7 @@ func httpServer(p string) {
 }
 
 func httpTLSServer(p string) {
-	log.Println("httpTLSServer")
+	debug("httpTLSServer")
 	httpSetup()
 	hitTLSChan = make(chan uint64, 1024)
 	go hitTLSCounter()
@@ -425,7 +425,7 @@ func httpTLSServer(p string) {
 func httpMakeImage(size FileSize) {
 	pixelcount := size / 4
 	side := int(math.Sqrt(float64(pixelcount)))
-	log.Printf("Image served will be %v by %v", side, side)
+	debugf("Image served will be %v by %v", side, side)
 
 	m := image.NewRGBA(image.Rect(0, 0, side, side))
 	for i := 0; i < len(m.Pix); i++ {
@@ -500,14 +500,14 @@ func httpImageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func httpHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("request: %v %v", r.RemoteAddr, r.URL.String())
+	debugf("request: %v %v", r.RemoteAddr, r.URL.String())
 	var usingTLS bool
 	if r.TLS != nil {
-		log.Println("request using tls")
+		debug("request using tls")
 		usingTLS = true
 	}
 
-	w.Header().Set("Server", "protonuke/"+version.Revision)
+	w.Header().Set("Server", "protonuke/"+version)
 
 	start := time.Now().UnixNano()
 	if httpFS != nil {
@@ -526,7 +526,7 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err := htmlTemplate.Execute(w, h)
 		if err != nil {
-			log.Errorln(err)
+			log.Fatal(err)
 		}
 	}
 
@@ -534,10 +534,10 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 	elapsed := uint64(stop - start)
 
 	if usingTLS {
-		log.Info("https %v %v %vns", r.RemoteAddr, r.URL, elapsed)
+		debug("https %v %v %vns", r.RemoteAddr, r.URL, elapsed)
 		hitTLSChan <- 1
 	} else {
-		log.Info("http %v %v %vns", r.RemoteAddr, r.URL, elapsed)
+		debug("http %v %v %vns", r.RemoteAddr, r.URL, elapsed)
 		hitChan <- 1
 	}
 }
@@ -551,7 +551,7 @@ func randomURLs() []string {
 		ret = append(ret, fmt.Sprintf("%v", url))
 
 	}
-	log.Println("random urls: ", ret)
+	debug("random urls: ", ret)
 	return ret
 }
 
